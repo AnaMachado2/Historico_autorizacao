@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { HistoricoService } from '../services/historico.service';
 import { HistoricoQueryDto } from '../dto/historico-query.dto';
@@ -9,7 +9,7 @@ import { VeiculoResponseDto } from '../dto/veiculo-response.dto';
 @ApiTags('Historico')
 @Controller('historico')
 export class HistoricoController {
-  constructor(private readonly historicoService: HistoricoService) {}
+  constructor(private readonly historicoService: HistoricoService) { }
 
   @Get('permissionarios')
   @ApiOperation({ summary: 'Obter histórico de permissionários' })
@@ -33,14 +33,11 @@ export class HistoricoController {
     return this.historicoService.getMotoristas(query);
   }
 
-  @Get('veiculos')
-  @ApiOperation({ summary: 'Obter histórico de veículos' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de veículos retornada com sucesso',
-    type: [VeiculoResponseDto],
-  })
-  async getVeiculos(@Query() query: HistoricoQueryDto) {
-    return this.historicoService.getVeiculos(query);
+  @Get('/veiculos/:sgServico/:nrPermissao')
+  async consultarVeiculos(
+    @Param('sgServico') sgServico: string,
+    @Param('nrPermissao') nrPermissao: string,
+  ) {
+    return await this.historicoService.getVeiculos(sgServico, nrPermissao);
   }
 }

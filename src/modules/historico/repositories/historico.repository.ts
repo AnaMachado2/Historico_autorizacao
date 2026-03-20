@@ -8,7 +8,7 @@ export class HistoricoRepository {
   constructor(
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
-  ) {}
+  ) { }
 
   async findPermissionarios(query: HistoricoQueryDto) {
     let sql = `
@@ -29,7 +29,7 @@ export class HistoricoRepository {
         per.id_operadora = ope.id_operadora
         AND per.id_servico = ser.id_servico
     `;
-    
+
     let paramIndex = 1;
     const parameters: any[] = [];
 
@@ -51,6 +51,7 @@ export class HistoricoRepository {
     return this.entityManager.query(sql, parameters);
   }
 
+  
   async findMotoristas(query: HistoricoQueryDto) {
     let sql = `
       SELECT 
@@ -74,8 +75,8 @@ export class HistoricoRepository {
        AND per.id_operadora = vo.id_operadora
        AND per.id_servico = ser.id_servico
        AND oap.ID_CATEG_FUNCIONAL = cf.ID_CATEG_FUNCIONAL 
-    `;
-    
+     `;
+
     let paramIndex = 1;
     const parameters: any[] = [];
 
@@ -97,34 +98,39 @@ export class HistoricoRepository {
     return this.entityManager.query(sql, parameters);
   }
 
-  async findVeiculos(query: HistoricoQueryDto) {
+  async findVeiculos(sg_servico: String, NR_PERMISSAO: String): Promise<HistoricoQueryDto[]> {
     let sql = `
-      SELECT
-      TO_CHAR(per.NR_PERMISSAO , 'FM00000') AS AUTORIZACAO,
-      VV.NR_PLACA ,
-      VV.MARCA  || ' - ' || VV.MODELO|| ' - ' || VV.ANO_FAB AS MARCA_MODELO_ANO,
+    SELECT DISTINCT 
+      TO_CHAR(per.NR_PERMISSAO , 'FM00000') AS autorizacao,
+      VV.NR_PLACA,
+      VV.MARCA || ' - ' || VV.MODELO || ' - ' || VV.ANO_FAB AS MARCA_MODELO_ANO,
       VV.DT_INICIO_OPERACAO AS DATA_INICIO,
       VV.DT_FIM_OPERACAO AS DATA_FIM
-      FROM 
-       DFTRANS.VW_OPERADORA vo,
-       DFTRANS.OPE_ALOCA_PREP oap,
-       DFTRANS.PREPOSTOS p,
-       DFTRANS.permissoes per,
-       DFTRANS.servicos ser,
-       DFTRANS.CATEGORIAS_FUNCIONAIS cf,
-       DFTRANS.VW_VEICULO VV,
-       DFTRANS.PERM_POSSUI_VEI ppv 
-      WHERE 
-       vo.ID_OPERADORA = oap.ID_OPERADORA
-       AND oap.ID_PREPOSTO = p.ID_PREPOSTO
-       AND oap.ID_PERMISSAO = per.ID_PERMISSAO
-       AND per.id_operadora = vo.id_operadora
-       AND per.id_servico = ser.id_servico
-       AND oap.ID_CATEG_FUNCIONAL = cf.ID_CATEG_FUNCIONAL
-       AND VV.ID_PERM_VEI = ppv.ID_PERM_VEI 
-       AND ppv.ID_PERMISSAO = per.ID_PERMISSAO
+    FROM 
+        DFTRANS.VW_OPERADORA vo,
+        DFTRANS.OPE_ALOCA_PREP oap,
+        DFTRANS.PREPOSTOS p,
+        DFTRANS.permissoes per,
+        DFTRANS.servicos ser,
+        DFTRANS.CATEGORIAS_FUNCIONAIS cf,
+        DFTRANS.VW_VEICULO VV,
+        DFTRANS.PERM_POSSUI_VEI ppv 
+    WHERE 
+        vo.ID_OPERADORA = oap.ID_OPERADORA
+        AND oap.ID_PREPOSTO = p.ID_PREPOSTO
+        AND oap.ID_PERMISSAO = per.ID_PERMISSAO
+        AND per.id_operadora = vo.id_operadora
+        AND per.id_servico = ser.id_servico
+        AND oap.ID_CATEG_FUNCIONAL = cf.ID_CATEG_FUNCIONAL
+        AND VV.ID_PERM_VEI = ppv.ID_PERM_VEI 
+        AND ppv.ID_PERMISSAO = per.ID_PERMISSAO
+        AND ser.sg_servico = :sg_servico
+        AND per.NR_PERMISSAO = :NR_PERMISSAO
+    ORDER BY 
+        VV.DT_FIM_OPERACAO
     `;
-    
+
+    /*
     let paramIndex = 1;
     const parameters: any[] = [];
 
@@ -141,8 +147,9 @@ export class HistoricoRepository {
     } else {
       sql += ` AND per.NR_PERMISSAO IN ('00001') `;
     }
-
     sql += ` ORDER BY VV.DT_FIM_OPERACAO`;
-    return this.entityManager.query(sql, parameters);
+    */
+    //return this.entityManager.query(sql, parameters);
+    return await this.entityManager.query(sql, [sg_servico, NR_PERMISSAO]);
   }
 }

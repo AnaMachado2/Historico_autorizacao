@@ -17,7 +17,9 @@ export class HistoricoService {
     return this.historicoRepository.findMotoristas(query);
   }
 
-  async getVeiculos(query: HistoricoQueryDto): Promise<VeiculoResponseDto[]> {
-    return this.historicoRepository.findVeiculos(query);
+  
+  async getVeiculos(sg_servico: String, NR_PERMISSAO: String): Promise<HistoricoQueryDto[]> {
+    return this.historicoRepository.findVeiculos(sg_servico, NR_PERMISSAO);
   }
+
 }
